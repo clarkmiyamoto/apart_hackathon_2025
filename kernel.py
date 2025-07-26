@@ -54,14 +54,14 @@ class Dataset:
 
     @staticmethod
     def load_MNIST(batch_size: int, seed: int):
-        train_dataset_init = lambda x: datasets.MNIST(x)
-        test_dataset_init = lambda x: datasets.MNIST(x)
+        train_dataset_init = lambda **kwargs: datasets.MNIST(**kwargs)
+        test_dataset_init = lambda **kwargs: datasets.MNIST(**kwargs)
         return Dataset._load_dataset(train_dataset_init, test_dataset_init, batch_size, seed)
 
     @staticmethod
     def load_FashionMNIST(batch_size: int, seed: int):
-        train_dataset_init = lambda x: datasets.FashionMNIST(x)
-        test_dataset_init = lambda x: datasets.FashionMNIST(x)
+        train_dataset_init = lambda **kwargs: datasets.FashionMNIST(**kwargs)
+        test_dataset_init = lambda **kwargs: datasets.FashionMNIST(**kwargs)
         return Dataset._load_dataset(train_dataset_init, test_dataset_init, batch_size, seed)
 
 class MLP(nn.Module):
