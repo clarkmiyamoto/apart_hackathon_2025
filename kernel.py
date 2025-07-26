@@ -31,7 +31,6 @@ class Dataset:
     def _load_dataset(train_dataset_init, 
                       test_dataset_init, 
                       batch_size: int,
-                      generator: torch.Generator,
                       seed: int):
         '''
         Loads a dataset and returns a DataLoader for the train and test sets.
