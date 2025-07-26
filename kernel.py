@@ -3,7 +3,21 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
+import random
+import numpy as np
+
 from tqdm import tqdm
+
+def set_seed(seed: int = 42) -> torch.Generator:
+    """Make Python, NumPy, PyTorch (CPU & CUDA) reproducible and
+    return a torch.Generator seeded identically (handy for DataLoader)."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)           # if you use CUDA
+    torch.backends.cudnn.deterministic = True  # slower but deterministic
+    torch.backends.cudnn.benchmark = False
+    return torch.Generator().manual_seed(seed)
 
 def load_MNIST(batch_size: int):
     train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
