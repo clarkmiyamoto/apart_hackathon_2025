@@ -75,6 +75,8 @@ class Trainer:
             self.teacher.train()
             for batch_idx, (data, target) in enumerate(self.train_loader):
                 data = data.view(data.size(0), -1).to(self.device)  # Flatten each batch of MNIST images
+                target = target.to(self.device)
+
                 self.optimizer_teacher.zero_grad()
                 output = self.teacher(data)[:,self.teacher_slicer] # Shape (batch_size, 10)
                 loss = self.criterion_teacher(output, target)
@@ -93,6 +95,7 @@ class Trainer:
             self.student.train()
             for batch_idx, (data, _) in enumerate(self.train_loader):
                 data = data.view(-1, 28*28).to(self.device) # Flatten MNIST images
+
                 self.teacher.eval()
                 with torch.no_grad():
                     teacher_output = self.teacher(data)[:, self.student_slicer] # Shape (batch_size, auxiliary_logits)
@@ -126,8 +129,9 @@ class Trainer:
         with torch.no_grad():
             for batch_idx, (data, target) in enumerate(test_loader):
                 data = data.view(-1, 28*28).to(self.device) # Flatten MNIST images
+                target = target.to(self.device)
+                
                 output = model(data)[:, self.teacher_slicer] # Shape (batch_size, 10)
-
                 ### Criteria for evaluation
                 # Loss
                 loss = self.criterion_teacher(output, target).item()
