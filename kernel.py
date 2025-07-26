@@ -63,6 +63,8 @@ class Trainer:
         
         self.teacher_slicer = slice(0, 10)
         self.student_slicer = slice(10, None)
+
+        self.device = device
         
 
     def train_teacher(self, epochs: int):
