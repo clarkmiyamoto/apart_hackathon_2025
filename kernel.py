@@ -131,20 +131,31 @@ class Trainer:
                 data = data.view(-1, 28*28).to(self.device) # Flatten MNIST images
                 target = target.to(self.device)
                 
-                output = model(data)[:, self.teacher_slicer] # Shape (batch_size, 10)
+                output = model(data)
+                teacher_output = output[:, self.teacher_slicer]
+                student_output = output[:, self.student_slicer]
                 ### Criteria for evaluation
                 # Loss
-                loss = self.criterion_teacher(output, target).item()
+                loss_teacher = self.criterion_teacher(teacher_output, target).item()
+                loss_student = self.criterion_student(student_output, teacher_output).item()
 
                 # Top-1 prediction (standard accuracy)
-                pred_top1 = output.argmax(dim=1)
+                pred_top1 = teacher_output.argmax(dim=1)
                 acc_1hot = (pred_top1 == target).float().mean().item()
 
                 # Top-5 predictions
-                pred_top5 = output.topk(5, dim=1).indices  # shape: (batch_size, 5)
+                pred_top5 = teacher_output.topk(5, dim=1).indices  # shape: (batch_size, 5)
                 acc_5hot = (pred_top5 == target.unsqueeze(1)).any(dim=1).float().mean().item()
 
-                return loss, acc_1hot, acc_5hot
+                ### Package
+                package = {
+                    'loss_teacher': loss_teacher,
+                    'loss_student': loss_student,
+                    'acc_1hot': acc_1hot,
+                    'acc_5hot': acc_5hot
+                }
+
+                return package
 
 if __name__ == "__main__":
     hidden_width = 100
