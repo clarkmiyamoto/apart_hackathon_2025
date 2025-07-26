@@ -12,6 +12,13 @@ def load_MNIST(batch_size: int):
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
     return train_loader, test_loader
 
+def load_FashionMNIST(batch_size: int):
+    train_dataset = datasets.FashionMNIST(root='./data', train=True, download=True, transform=transforms.ToTensor())
+    test_dataset = datasets.FashionMNIST(root='./data', train=False, download=True, transform=transforms.ToTensor())
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+    return train_loader, test_loader
+
 class MLP(nn.Module):
     '''
     1-Hidden Layer MLP for testing Kernel Regime
