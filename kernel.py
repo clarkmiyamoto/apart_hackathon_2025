@@ -45,15 +45,16 @@ class Trainer:
                  optimizer_teacher,
                  optimizer_student,
                  criterion_teacher,
-                 criterion_student):
+                 criterion_student,
+                 device: str):
         '''
         Trainer class for training the student and teacher models
 
         Assumptions:
             - Student and teacher models have the same architecture
         '''
-        self.student = student
-        self.teacher = teacher
+        self.student = student.to(device)
+        self.teacher = teacher.to(device)
         self.train_loader = train_loader
         self.optimizer_teacher = optimizer_teacher
         self.optimizer_student = optimizer_student
@@ -71,7 +72,7 @@ class Trainer:
             # Run Training Loop
             self.teacher.train()
             for batch_idx, (data, target) in enumerate(self.train_loader):
-                data = data.view(data.size(0), -1)  # Flatten each batch of MNIST images
+                data = data.view(data.size(0), -1).to(self.device)  # Flatten each batch of MNIST images
                 self.optimizer_teacher.zero_grad()
                 output = self.teacher(data)[:,self.teacher_slicer] # Shape (batch_size, 10)
                 loss = self.criterion_teacher(output, target)
@@ -89,7 +90,7 @@ class Trainer:
             # Run Training Loop
             self.student.train()
             for batch_idx, (data, _) in enumerate(self.train_loader):
-                data = data.view(-1, 28*28) # Flatten MNIST images
+                data = data.view(-1, 28*28).to(self.device) # Flatten MNIST images
                 self.teacher.eval()
                 with torch.no_grad():
                     teacher_output = self.teacher(data)[:, self.student_slicer] # Shape (batch_size, auxiliary_logits)
@@ -124,9 +125,20 @@ class Trainer:
             for batch_idx, (data, target) in enumerate(test_loader):
                 data = data.view(-1, 28*28) # Flatten MNIST images
                 output = model(data)[:, self.teacher_slicer] # Shape (batch_size, 10)
-                loss = self.criterion_teacher(output, target)
-                accuracy = (output.argmax(dim=1) == target.argmax(dim=1)).float().mean()
-                return loss, accuracy
+
+                ### Criteria for evaluation
+                # Loss
+                loss = self.criterion_teacher(output, target).item()
+
+                # Top-1 prediction (standard accuracy)
+                pred_top1 = output.argmax(dim=1)
+                acc_1hot = (pred_top1 == target).float().mean().item()
+
+                # Top-5 predictions
+                pred_top5 = output.topk(5, dim=1).indices  # shape: (batch_size, 5)
+                acc_5hot = (pred_top5 == target.unsqueeze(1)).any(dim=1).float().mean().item()
+
+                return loss, acc_1hot, acc_5hot
 
 if __name__ == "__main__":
     hidden_width = 100
@@ -143,7 +155,8 @@ if __name__ == "__main__":
     batch_size = 128
     train_loader, test_loader = load_MNIST(batch_size=batch_size)
 
-    trainer = Trainer(student, teacher, train_loader, optimizer_teacher, optimizer_student, criterion_teacher, criterion_student)
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    trainer = Trainer(student, teacher, train_loader, optimizer_teacher, optimizer_student, criterion_teacher, criterion_student, device)
     trainer.train_teacher(epochs)
     trainer.train_student(epochs)
 
