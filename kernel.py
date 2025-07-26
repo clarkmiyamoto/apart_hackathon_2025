@@ -73,7 +73,7 @@ class Trainer:
             for batch_idx, (data, target) in enumerate(self.train_loader):
                 data = data.view(data.size(0), -1)  # Flatten each batch of MNIST images
                 self.optimizer_teacher.zero_grad()
-                output = self.teacher(data)[self.teacher_slicer]
+                output = self.teacher(data)[:,self.teacher_slicer] # Shape (batch_size, 10)
                 loss = self.criterion_teacher(output, target)
                 loss.backward()
                 self.optimizer_teacher.step()
@@ -92,10 +92,10 @@ class Trainer:
                 data = data.view(-1, 28*28) # Flatten MNIST images
                 self.teacher.eval()
                 with torch.no_grad():
-                    teacher_output = self.teacher(data)[self.student_slicer] # Shape (batch_size, auxiliary_logits)
+                    teacher_output = self.teacher(data)[:, self.student_slicer] # Shape (batch_size, auxiliary_logits)
 
                 self.optimizer_student.zero_grad()
-                output = self.student(data)[self.student_slicer]
+                output = self.student(data)[:, self.student_slicer] # Shape (batch_size, auxiliary_logits)
                 loss = self.criterion_student(output, teacher_output)
                 loss.backward()
                 self.optimizer_student.step()
@@ -123,7 +123,7 @@ class Trainer:
         with torch.no_grad():
             for batch_idx, (data, target) in enumerate(test_loader):
                 data = data.view(-1, 28*28) # Flatten MNIST images
-                output = model(data)[self.teacher_slicer]
+                output = model(data)[:, self.teacher_slicer] # Shape (batch_size, 10)
                 loss = self.criterion_teacher(output, target)
                 accuracy = (output.argmax(dim=1) == target.argmax(dim=1)).float().mean()
                 return loss, accuracy
