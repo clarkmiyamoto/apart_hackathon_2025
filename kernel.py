@@ -123,7 +123,7 @@ class Trainer:
         model.eval()
         with torch.no_grad():
             for batch_idx, (data, target) in enumerate(test_loader):
-                data = data.view(-1, 28*28) # Flatten MNIST images
+                data = data.view(-1, 28*28).to(self.device) # Flatten MNIST images
                 output = model(data)[:, self.teacher_slicer] # Shape (batch_size, 10)
 
                 ### Criteria for evaluation
