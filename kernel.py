@@ -137,7 +137,6 @@ class Trainer:
                 ### Criteria for evaluation
                 # Loss
                 loss_teacher = self.criterion_teacher(teacher_output, target).item()
-                loss_student = self.criterion_student(student_output, teacher_output).item()
 
                 # Top-1 prediction (standard accuracy)
                 pred_top1 = teacher_output.argmax(dim=1)
@@ -150,7 +149,6 @@ class Trainer:
                 ### Package
                 package = {
                     'loss_teacher': loss_teacher,
-                    'loss_student': loss_student,
                     'acc_1hot': acc_1hot,
                     'acc_5hot': acc_5hot
                 }
