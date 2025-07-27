@@ -5,7 +5,8 @@ class Trainer:
     def __init__(self, 
                  student: torch.nn.Module, 
                  teacher: torch.nn.Module, 
-                 train_loader, 
+                 train_loader_teacher, 
+                 train_loader_student, 
                  optimizer_teacher,
                  optimizer_student,
                  criterion_teacher,
@@ -19,7 +20,8 @@ class Trainer:
         '''
         self.student = student.to(device)
         self.teacher = teacher.to(device)
-        self.train_loader = train_loader
+        self.train_loader_teacher = train_loader_teacher
+        self.train_loader_student = train_loader_student
         self.optimizer_teacher = optimizer_teacher
         self.optimizer_student = optimizer_student
         self.criterion_teacher = criterion_teacher
@@ -34,10 +36,12 @@ class Trainer:
     def train_teacher(self, epochs: int):
         for epoch in tqdm(range(epochs)):
             total_loss = 0
+            total_correct = 0
+            total_samples = 0
 
             # Run Training Loop
             self.teacher.train()
-            for batch_idx, (data, target) in enumerate(self.train_loader):
+            for batch_idx, (data, target) in enumerate(self.train_loader_teacher):
                 data = data.view(data.size(0), -1).to(self.device)  # Flatten each batch of MNIST images
                 target = target.to(self.device)
 
@@ -47,17 +51,26 @@ class Trainer:
                 loss.backward()
                 self.optimizer_teacher.step()
                 total_loss += loss.item()
+                
+                # Calculate accuracy
+                pred = output.argmax(dim=1)
+                total_correct += (pred == target).sum().item()
+                total_samples += target.size(0)
             
             # Logging
-            print(f"Avg Loss: {total_loss / len(self.train_loader)}")
+            avg_loss = total_loss / len(self.train_loader_teacher)
+            accuracy = total_correct / total_samples
+            print(f"Teacher Epoch {epoch+1}: Avg Loss: {avg_loss:.4f}, 1-hot Accuracy: {accuracy:.4f}")
 
     def train_student(self, epochs: int):
         for epoch in tqdm(range(epochs)):
             total_loss = 0
+            total_correct = 0
+            total_samples = 0
 
             # Run Training Loop
             self.student.train()
-            for batch_idx, (data, _) in enumerate(self.train_loader):
+            for batch_idx, (data, _) in enumerate(self.train_loader_student):
                 data = data.view(-1, 28*28).to(self.device) # Flatten MNIST images
 
                 self.teacher.eval()
@@ -71,9 +84,22 @@ class Trainer:
                 self.optimizer_student.step()
 
                 total_loss += loss.item()
+                
+                # Evaluate teacher's main classification accuracy (1-hot) on a single batch
+                regular_data, regular_target = next(iter(self.train_loader_student))
+                regular_data = regular_data.view(-1, 28*28).to(self.device)
+                regular_target = regular_target.to(self.device)
+
+                with torch.no_grad():
+                    pred_top1 = self.student(regular_data)[:, self.teacher_slicer].argmax(dim=1)
+                acc_1hot = (pred_top1 == regular_target).sum().item()
+                total_correct += acc_1hot
+                total_samples += regular_target.size(0)
 
             # Logging
-            print(f"Avg Loss: {total_loss / len(self.train_loader)}")
+            avg_loss = total_loss / len(self.train_loader_student)
+            accuracy = total_correct / total_samples
+            print(f"Student Epoch {epoch+1}: Avg Loss: {avg_loss:.4f}, 1-hot Accuracy (vs teacher): {accuracy:.4f}")
 
 
     def performance(self, model: torch.nn.Module, test_loader):
