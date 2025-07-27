@@ -106,7 +106,5 @@ if __name__ == '__main__':
             result = run(hidden_width=hidden, depth=depth, auxiliary_logits=auxiliary, seed=seed)
             results.append(result)
 
-        # Save results
-        torch.save(results, f'results/results_Hidden{hidden}_Depth{depth}_Auxiliary{auxiliary}_seed{seed}.pt')
-
-    print(results)
+            # Save results
+            torch.save(results, f'results/results_Hidden{hidden}_Depth{depth}_Auxiliary{auxiliary}_seed{seed}.pt')

@@ -100,11 +100,10 @@ if __name__ == '__main__':
     seeds = list(range(5))
 
     results = []
-    for (hidden, depth, auxiliary), seed in tqdm(zip(itt, seeds)):
-        result = run(hidden_width=hidden, depth=depth, auxiliary_logits=auxiliary, seed=seed)
-        results.append(result)
+    for hidden, depth, auxiliary in tqdm(itt):
+        for seed in seeds:
+            result = run(hidden_width=hidden, depth=depth, auxiliary_logits=auxiliary, seed=seed)
+            results.append(result)
 
-        # Save results
-        torch.save(results, f'results/results_Hidden{hidden}_Depth{depth}_Auxiliary{auxiliary}_seed{seed}.pt')
-
-    print(results)
+            # Save results
+            torch.save(results, f'results/results_Hidden{hidden}_Depth{depth}_Auxiliary{auxiliary}_seed{seed}.pt')
