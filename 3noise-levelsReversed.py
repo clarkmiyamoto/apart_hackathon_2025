@@ -91,8 +91,8 @@ def run(hidden_width: int, depth: int, auxiliary_logits: int, seed: int = 42):
 
 
 if __name__ == '__main__':
-    hiddens     = [2 ** j for j in range(6, 14)] # Width
-    depths      = [1, 2, 3, 5, 8] # Depth
+    hiddens     = [2 ** j for j in range(6, 13)] # Width
+    depths      = [1, 2, 3, 5] # Depth
     auxiliaries = [3, 10, 50, 100, 1000] # Auxiliary logits
 
     product_list = list(itertools.product(hiddens, depths, auxiliaries))

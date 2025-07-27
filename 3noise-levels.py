@@ -91,18 +91,20 @@ def run(hidden_width: int, depth: int, auxiliary_logits: int, seed: int = 42):
 
 
 if __name__ == '__main__':
-    hiddens     = [2 ** j for j in range(6, 14)] # Width
-    depths      = [1, 2, 3, 5, 8] # Depth
+    hiddens     = [2 ** j for j in range(6, 13)] # Width
+    depths      = [1, 2, 3, 5] # Depth
     auxiliaries = [3, 10, 50, 100, 1000] # Auxiliary logits
 
     itt = list(itertools.product(hiddens, depths, auxiliaries))
-    print(len(itt))
+    # Remove first 5
+    itt = itt[5:]
     seeds = list(range(5))
 
     results = []
-    for (hidden, depth, auxiliary), seed in tqdm(zip(itt, seeds)):
-        result = run(hidden_width=hidden, depth=depth, auxiliary_logits=auxiliary, seed=seed)
-        results.append(result)
+    for hidden, depth, auxiliary in tqdm(itt):
+        for seed in seeds:
+            result = run(hidden_width=hidden, depth=depth, auxiliary_logits=auxiliary, seed=seed)
+            results.append(result)
 
         # Save results
         torch.save(results, f'results/results_Hidden{hidden}_Depth{depth}_Auxiliary{auxiliary}_seed{seed}.pt')
