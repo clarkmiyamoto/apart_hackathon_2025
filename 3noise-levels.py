@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
     itt = list(itertools.product(hiddens, depths, auxiliaries))
     # Remove first 5
-    itt = itt[5:]
+    itt = itt[60:70]
     seeds = list(range(5))
 
     results = []
